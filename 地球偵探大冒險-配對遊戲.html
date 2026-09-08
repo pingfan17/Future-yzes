@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>地球偵探大冒險</title>
+<style>
+:root{
+  --navy-950:#0c1730;
+  --navy-900:#111f42;
+  --navy-800:#182a54;
+  --navy-700:#223669;
+  --paper:#fbf6ea;
+  --paper-dim:#efe6d2;
+  --ink:#1c2440;
+  --ink-soft:#5a6280;
+  --amber:#f6a13f;
+  --amber-dark:#d6811f;
+  --teal:#2fb8ac;
+  --teal-dark:#1c8f85;
+  --leaf:#4caf7d;
+  --leaf-dark:#348b5f;
+  --coral:#e8615c;
+  --coral-dark:#c8433f;
+  --gold:#ffcf6b;
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --radius-sm: 9px;
+  --shadow-deep: 0 14px 34px rgba(9,14,34,.35);
+  --shadow-soft: 0 6px 16px rgba(9,14,34,.18);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+html,body{height:100%;}
+body{
+  margin:0;
+  font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",-apple-system,BlinkMacSystemFont,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 700px at 15% -10%, rgba(255,255,255,.06), transparent 60%),
+    radial-gradient(900px 600px at 110% 10%, rgba(47,184,172,.18), transparent 55%),
+    linear-gradient(160deg, var(--navy-950), var(--navy-900) 55%, var(--navy-800));
+  min-height:100%;
+  overflow-x:hidden;
+  user-select:none;
+}
+.stars{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.55;}
+.stars span{position:absolute; width:2px; height:2px; background:#fff; border-radius:50%; opacity:.5;}
+
+.screen{position:relative; z-index:1; min-height:100dvh; display:none; flex-direction:column;}
+.screen.active{display:flex;}
+
+/* ---------- HOME ---------- */
+#home{align-items:center; justify-content:center; padding:32px 20px 44px; text-align:center;}
+.badge-emoji{font-size:52px; line-height:1; margin-bottom:6px; filter:drop-shadow(0 6px 14px rgba(0,0,0,.35));}
+.home-title{
+  font-size:clamp(30px,5.4vw,48px);
+  font-weight:900;
+  letter-spacing:.02em;
+  color:var(--paper);
+  margin:2px 0 6px;
+}
+.home-sub{
+  color:#a9b3d6;
+  font-size:15px;
+  margin:0 0 30px;
+  letter-spacing:.04em;
+}
+.card-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(150px,220px));
+  gap:18px;
+  width:100%;
+  max-width:760px;
+}
+@media (max-width:640px){
+  .card-grid{grid-template-columns:1fr; max-width:320px;}
+}
+.mission-btn{
+  position:relative;
+  border:none;
+  cursor:pointer;
+  border-radius:var(--radius-lg);
+  padding:26px 14px 20px;
+  background:linear-gradient(160deg, var(--paper), var(--paper-dim));
+  box-shadow:var(--shadow-deep), inset 0 0 0 2px rgba(255,255,255,.5);
+  text-align:left;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.mission-btn:active{transform:scale(.96);}
+.mission-btn .tag{
+  display:inline-block;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  color:var(--teal-dark);
+  background:rgba(47,184,172,.15);
+  padding:4px 10px;
+  border-radius:999px;
+  margin-bottom:12px;
+}
+.mission-btn .num{
+  font-size:44px;
+  font-weight:900;
+  color:var(--navy-900);
+  line-height:1;
+}
+.mission-btn .label{
+  font-size:14px;
+  color:var(--ink-soft);
+  margin-top:6px;
+  font-weight:700;
+}
+.mission-btn .progress-dot{
+  position:absolute; top:14px; right:14px;
+  width:12px; height:12px; border-radius:50%;
+  background:#d8d0ba;
+}
+.mission-btn .progress-dot.done{background:var(--leaf);}
+.mission-btn .progress-dot.done::after{
+  content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:9px; color:#fff; font-weight:900;
+}
+
+.teacher-fab{
+  position:fixed; right:16px; bottom:16px; z-index:5;
+  width:46px; height:46px; border-radius:50%;
+  border:none; cursor:pointer;
+  background:rgba(255,255,255,.12);
+  color:#cfd6ef;
+  font-size:20px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 16px rgba(0,0,0,.3);
+}
+.teacher-fab:active{transform:scale(.92);}
+
+/* ---------- PLAY SCREEN ---------- */
+#play{padding:14px 14px 0;}
+.play-topbar{
+  display:flex; align-items:center; gap:10px;
+  padding:6px 4px 14px;
+}
+.icon-btn{
+  border:none; cursor:pointer; border-radius:12px;
+  width:42px; height:42px; flex:0 0 auto;
+  background:rgba(255,255,255,.12); color:var(--paper);
+  font-size:18px; display:flex; align-items:center; justify-content:center;
+}
+.icon-btn:active{transform:scale(.92);}
+.play-title{flex:1; text-align:center;}
+.play-title .k{font-size:12px; letter-spacing:.1em; color:#9fabd4; font-weight:700;}
+.play-title .t{font-size:19px; font-weight:900; color:var(--paper);}
+.progress-pill{
+  flex:0 0 auto;
+  background:rgba(255,255,255,.12);
+  color:var(--paper);
+  font-weight:800; font-size:13px;
+  padding:8px 12px; border-radius:999px;
+  min-width:52px; text-align:center;
+}
+
+.clue-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  padding-bottom:16px;
+}
+@media (max-width:560px){ .clue-grid{grid-template-columns:1fr;} }
+
+.clue-card{
+  background:var(--paper);
+  border-radius:var(--radius-md);
+  padding:14px 14px 12px;
+  box-shadow:var(--shadow-soft);
+  position:relative;
+  border:2px solid transparent;
+  transition:border-color .2s ease, background .2s ease;
+}
+.clue-card.correct{border-color:var(--leaf); background:#eef8f1;}
+.clue-card.wrong{border-color:var(--coral); animation:shake .35s ease;}
+@keyframes shake{
+  10%,90%{transform:translateX(-2px);}
+  20%,80%{transform:translateX(4px);}
+  30%,50%,70%{transform:translateX(-7px);}
+  40%,60%{transform:translateX(7px);}
+}
+.clue-title{
+  font-size:15px; font-weight:900; color:var(--navy-900);
+  margin:0 0 4px;
+  display:flex; align-items:center; gap:6px;
+}
+.clue-title .ico{font-size:15px;}
+.clue-desc{
+  font-size:12.5px; line-height:1.55; color:var(--ink-soft);
+  margin:0 0 10px;
+  max-height:5.6em; overflow:hidden;
+}
+.drop-row{
+  display:flex; align-items:center; gap:8px;
+}
+.drop-label{font-size:11.5px; color:#a08c5f; font-weight:700; white-space:nowrap;}
+.drop-zone{
+  flex:1;
+  height:46px;
+  border-radius:11px;
+  border:2.5px dashed #d8cba3;
+  background:#fffdf7;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; font-weight:900; color:var(--navy-900);
+  transition:border-color .15s ease, background .15s ease, transform .1s ease;
+}
+.drop-zone.hover{border-color:var(--teal); background:#e8fbf8; transform:scale(1.04);}
+.drop-zone.filled{border-style:solid; border-color:var(--teal);}
+.clue-card.correct .drop-zone{border-color:var(--leaf); border-style:solid; background:#dff3e6; color:var(--leaf-dark);}
+.clue-card.correct .clue-title{color:var(--leaf-dark);}
+.lock-icon{position:absolute; top:10px; right:10px; font-size:16px;}
+
+.tray-wrap{
+  position:sticky; bottom:0;
+  margin:8px -14px 0;
+  padding:14px 14px calc(14px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg, rgba(12,23,48,0), var(--navy-950) 22%);
+}
+.tray{
+  display:flex; gap:10px; overflow-x:auto; padding:6px 2px 10px;
+  scrollbar-width:none;
+}
+.tray::-webkit-scrollbar{display:none;}
+.num-tile{
+  flex:0 0 auto;
+  width:52px; height:52px; border-radius:14px;
+  background:linear-gradient(160deg, var(--teal), var(--teal-dark));
+  color:#fff; font-size:21px; font-weight:900;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 14px rgba(0,0,0,.3);
+  cursor:grab;
+  touch-action:none;
+}
+.num-tile.placed{opacity:0; pointer-events:none;}
+.num-tile.dragging{
+  position:fixed; z-index:50; box-shadow:0 14px 30px rgba(0,0,0,.4);
+  transform:scale(1.12);
+}
+.tray-empty{color:#7c88ae; font-size:13px; padding:10px 4px; text-align:center; width:100%;}
+
+.check-btn-row{display:flex; justify-content:center; padding:2px 0 10px;}
+.check-btn{
+  border:none; cursor:pointer;
+  background:linear-gradient(160deg, var(--amber), var(--amber-dark));
+  color:#fff; font-weight:900; font-size:16px;
+  padding:14px 40px; border-radius:999px;
+  box-shadow:0 10px 22px rgba(214,129,31,.4);
+}
+.check-btn:active{transform:scale(.96);}
+.check-btn:disabled{opacity:.4; box-shadow:none;}
+
+.no-answers-note{
+  background:rgba(232,97,92,.15); color:#ffd7d5;
+  border:1px solid rgba(232,97,92,.4);
+  border-radius:12px; padding:10px 14px; font-size:12.5px;
+  margin:0 0 12px; line-height:1.5;
+}
+
+/* ---------- CELEBRATE ---------- */
+#celebrate{
+  position:fixed; inset:0; z-index:40; display:none;
+  align-items:center; justify-content:center;
+  background:rgba(12,23,48,.82);
+  backdrop-filter:blur(2px);
+}
+#celebrate.active{display:flex;}
+.celebrate-card{
+  background:var(--paper); border-radius:26px;
+  padding:36px 30px 28px; text-align:center; max-width:340px;
+  box-shadow:0 20px 50px rgba(0,0,0,.5);
+}
+.celebrate-card .emoji{font-size:56px;}
+.celebrate-card h2{margin:8px 0 6px; font-size:24px; color:var(--navy-900);}
+.celebrate-card p{margin:0 0 20px; color:var(--ink-soft); font-size:14px;}
+.celebrate-actions{display:flex; gap:10px; justify-content:center;}
+.pill-btn{
+  border:none; cursor:pointer; border-radius:999px; padding:12px 22px;
+  font-weight:800; font-size:14px;
+}
+.pill-btn.primary{background:var(--amber); color:#fff;}
+.pill-btn.ghost{background:#eee3c7; color:var(--navy-900);}
+.confetti{position:absolute; inset:0; overflow:hidden; pointer-events:none; border-radius:26px;}
+.confetti i{
+  position:absolute; top:-10%; width:8px; height:14px; opacity:.9;
+  animation:fall linear forwards;
+}
+@keyframes fall{ to{ transform:translateY(420px) rotate(360deg); opacity:0;} }
+
+/* ---------- TEACHER MODAL ---------- */
+.overlay{
+  position:fixed; inset:0; z-index:30; display:none;
+  align-items:flex-end; justify-content:center;
+  background:rgba(8,14,30,.55);
+}
+.overlay.active{display:flex;}
+@media (min-width:720px){ .overlay{align-items:center;} }
+.sheet{
+  width:100%; max-width:640px; max-height:88dvh;
+  background:var(--paper);
+  border-radius:24px 24px 0 0;
+  display:flex; flex-direction:column;
+  box-shadow:0 -10px 40px rgba(0,0,0,.4);
+}
+@media (min-width:720px){ .sheet{border-radius:22px; max-height:82dvh;} }
+.sheet-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 18px 10px; border-bottom:1px solid #e8dfc7;
+}
+.sheet-head h3{margin:0; font-size:17px; color:var(--navy-900);}
+.sheet-close{
+  border:none; background:#eee3c7; color:var(--navy-900);
+  width:34px; height:34px; border-radius:50%; font-size:16px; cursor:pointer;
+}
+.sheet-body{padding:16px 18px 26px; overflow-y:auto;}
+
+.pin-pad{max-width:260px; margin:10px auto 0; text-align:center;}
+.pin-dots{display:flex; gap:12px; justify-content:center; margin:14px 0 20px;}
+.pin-dots span{width:14px; height:14px; border-radius:50%; background:#e2d7b8; border:2px solid #cdbd8e;}
+.pin-dots span.on{background:var(--teal); border-color:var(--teal-dark);}
+.pin-keys{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+.pin-key{
+  border:none; cursor:pointer; padding:16px 0; border-radius:14px;
+  background:#fff; box-shadow:var(--shadow-soft); font-size:20px; font-weight:800; color:var(--navy-900);
+}
+.pin-key:active{transform:scale(.95);}
+.pin-key.wide{grid-column:span 1;}
+.pin-error{color:var(--coral-dark); font-size:13px; height:18px; margin-top:6px;}
+
+.settings-section{margin-bottom:22px;}
+.settings-section h4{
+  font-size:13px; letter-spacing:.06em; color:var(--teal-dark);
+  margin:0 0 10px; font-weight:900;
+}
+.answer-row{
+  display:flex; align-items:center; gap:10px;
+  padding:8px 0; border-bottom:1px dashed #e5d9b6;
+}
+.answer-row .name{flex:1; font-size:13.5px; color:var(--ink); font-weight:600;}
+.answer-row .name b{color:var(--navy-900); font-weight:900;}
+.answer-row input{
+  width:64px; text-align:center; font-size:16px; font-weight:800;
+  padding:9px 4px; border-radius:10px; border:1.5px solid #d8cba3;
+  background:#fffdf7; color:var(--navy-900);
+}
+.answer-row input:focus{outline:2px solid var(--teal); border-color:var(--teal);}
+
+.settings-actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;}
+.btn{
+  border:none; cursor:pointer; border-radius:12px; padding:12px 16px;
+  font-weight:800; font-size:13.5px; flex:1; min-width:120px;
+}
+.btn.save{background:var(--leaf); color:#fff;}
+.btn.export{background:var(--navy-800); color:#fff;}
+.btn.import{background:#eee3c7; color:var(--navy-900);}
+.btn.pinchange{background:#eee3c7; color:var(--navy-900);}
+.save-toast{
+  position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px);
+  background:var(--navy-900); color:#fff; padding:12px 20px; border-radius:999px;
+  font-size:13.5px; font-weight:700; opacity:0; transition:all .25s ease; z-index:60; pointer-events:none;
+}
+.save-toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+.hint{font-size:12px; color:var(--ink-soft); line-height:1.6; margin:4px 0 14px;}
+input[type=file]{display:none;}
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<!-- HOME -->
+<section id="home" class="screen active">
+  <div class="badge-emoji">🌍🔎</div>
+  <h1 class="home-title">地球偵探大冒險</h1>
+  <p class="home-sub">未來戰士小偵探・任務卡挑戰</p>
+  <div class="card-grid" id="cardGrid"></div>
+</section>
+
+<!-- PLAY -->
+<section id="play" class="screen">
+  <div class="play-topbar">
+    <button class="icon-btn" id="backBtn">←</button>
+    <div class="play-title">
+      <div class="k">任務卡 <span id="playCardNo"></span></div>
+      <div class="t">星球危機大搜查</div>
+    </div>
+    <div class="progress-pill" id="progressPill">0/6</div>
+  </div>
+  <div id="noAnswersNote" class="no-answers-note" style="display:none;">
+    ⚠️ 老師還沒有設定這張任務卡的正確答案，請先點右下角齒輪圖示進入「老師設定」輸入作品編號。
+  </div>
+  <div class="clue-grid" id="clueGrid"></div>
+  <div class="tray-wrap">
+    <div class="check-btn-row">
+      <button class="check-btn" id="checkBtn">✅ 確認答案</button>
+    </div>
+    <div class="tray" id="tray"></div>
+  </div>
+</section>
+
+<button class="teacher-fab" id="teacherFab" title="老師設定">⚙️</button>
+
+<!-- CELEBRATE -->
+<div id="celebrate">
+  <div class="celebrate-card">
+    <div class="confetti" id="confetti"></div>
+    <div class="emoji">🏆</div>
+    <h2>任務完成！</h2>
+    <p>小偵探太厲害了，成功找出所有線索！</p>
+    <div class="celebrate-actions">
+      <button class="pill-btn ghost" id="celReplay">再玩一次</button>
+      <button class="pill-btn primary" id="celHome">回主畫面</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN OVERLAY -->
+<div class="overlay" id="pinOverlay">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3>老師設定</h3>
+      <button class="sheet-close" id="pinClose">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="pin-pad">
+        <p style="text-align:center; color:var(--ink-soft); font-size:13.5px; margin:2px 0 0;">請輸入 4 位數 PIN 碼</p>
+        <div class="pin-dots" id="pinDots">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="pin-error" id="pinError"></div>
+        <div class="pin-keys" id="pinKeys"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS OVERLAY -->
+<div class="overlay" id="settingsOverlay">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3>老師設定 · 答案與同步</h3>
+      <button class="sheet-close" id="settingsClose">✕</button>
+    </div>
+    <div class="sheet-body" id="settingsBody">
+      <p class="hint">請輸入每個線索對應的「作品編號」（數字）。設定完成後按「儲存」，孩子畫面就會立即套用。多台平板可用「匯出答案檔」產生一個檔案，再到其他平板「匯入答案檔」同步。</p>
+      <div id="settingsSections"></div>
+      <div class="settings-actions">
+        <button class="btn save" id="saveAnswersBtn">💾 儲存答案</button>
+        <button class="btn export" id="exportBtn">⬆️ 匯出答案檔</button>
+        <button class="btn import" id="importBtn">⬇️ 匯入答案檔</button>
+        <button class="btn pinchange" id="pinChangeBtn">🔑 修改 PIN 碼</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json">
+    </div>
+  </div>
+</div>
+
+<div class="save-toast" id="saveToast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------- DATA ---------------- */
+const CLUES = [
+  {id:"A1", card:1, title:"神祕的超級棉被", icon:"☁️", desc:"「我是一條隱形的超級棉被，保護地球不會太熱或太冷。」請尋找一張拍到海面上閃電「雷雨胞」，而且棉被外還有「彗星」路過的作品。"},
+  {id:"B2", card:1, title:"冒煙的進步象徵", icon:"🏭", desc:"煙囪曾經代表城市變厲害了。請尋找畫家陳澄波先生在 1934 年畫出的嘉義市，畫面左後方有幾根「高聳煙囪」的作品。"},
+  {id:"C6", card:1, title:"被淹沒的紅磚老房子", icon:"🏚️", desc:"「當我們抽走太多地下水，土地就會像乾掉的海綿一樣縮下去。」請尋找那張老房子泡在水裡，看起來很安靜卻很悲傷的照片。"},
+  {id:"C7", card:1, title:"塑膠組成的不死怪獸", icon:"🦖", desc:"這些怪獸不會腐爛也不會消失。請尋找那件用成千上萬個舊玩具組成的「巨大塑膠恐龍」作品。"},
+  {id:"A5", card:1, title:"地底的黑金寶藏", icon:"⛏️", desc:"「我們彎著身體揮汗工作，在地底下挖掘神祕的黑金。」請尋找那幅畫著辛苦礦工在黑暗擁擠坑道中工作的作品。"},
+  {id:"B5", card:1, title:"機車瀑布裡的祕密客", icon:"🏍️", desc:"台北橋上有壯觀的「機車瀑布」，但在冒煙的機車大軍中，有一位戴著「紅色帽子」的老爺爺正努力騎著「腳踏車」，你能找到他嗎？"},
+
+  {id:"B1", card:2, title:"度假沙灘旁的祕密", icon:"🏖️", desc:"便利的電力有時會改變風景。請尋找那張在南灣沙灘插滿彩色遮陽傘，遠方卻有核電廠與風車的作品。"},
+  {id:"A2", card:2, title:"海底的粉紅派對", icon:"🐠", desc:"海洋每年都會舉辦一次壯觀的「聯合婚禮」。請尋找那張記錄珊瑚產卵，畫面滿滿都是粉紅色小點點的作品。"},
+  {id:"C8", card:2, title:"未來的古代遺址", icon:"📱", desc:"「我看起來像是泥土裡挖出來的古代寶物，其實我是你每天用的手機。」請尋找這件把電子垃圾偽裝成古代陶器的作品。"},
+  {id:"C4", card:2, title:"消失的冰河", icon:"🧊", desc:"冰河快要被熱融化了。請尋找那組對比 1999 年與 2019 年的照片，發現原本白色的冰河都變成黑褐色的岩石。"},
+  {id:"A7", card:2, title:"神奇的健康泥土", icon:"🪵", desc:"在自然魔法下，要變出「1公分厚」的健康泥土，竟然要花上 100 年！請找出這件由大大的木頭字組成，寫著重建土地需要很久的作品。"},
+  {id:"A6", card:2, title:"山頭上的白色雲海", icon:"⛰️", desc:"在高山基地裡，水會變成漂亮的雲朵。請尋找那張同時拍到璀璨銀河，以及山頭上覆蓋著厚厚「白色雲海」的作品。"},
+
+  {id:"C1", card:3, title:"一百年前的霧中煙塵", icon:"🎨", desc:"工廠的煙混進了自然美景中。請尋找莫內畫出的《印象・日出》，裡面隱約可以看到重機具與工廠煙囪的作品。"},
+  {id:"C2", card:3, title:"發燒的狂暴大氣", icon:"🔥", desc:"地球發燒了，一邊在大火，另一邊在淹水。請尋找那組呈現「美國野火」與「台灣洪水」完全相反景象的作品。"},
+  {id:"B3", card:3, title:"幾百年前的豪華餐桌", icon:"🦞", desc:"人類很早就開始運送各地的資源。請尋找那幅擺著金色高腳杯、巨大紅色龍蝦與精美瓷盤的靜物畫。"},
+  {id:"B4", card:3, title:"大樓裡的發電小風車", icon:"🌬️", desc:"強風也可以變成亮光。請尋找那件在玻璃雨棚上安裝了近 500 台小風車，只要風一吹，下方的 LED 燈就會亮起來的作品。"},
+  {id:"A8", card:3, title:"像樓梯一樣的田", icon:"🌾", desc:"為了留住雨水，人類會把土地改成樓梯的樣子。請尋找那張在花蓮拍攝，拍到金黃色「梯田」與藍色太平洋的作品。"},
+  {id:"A3", card:3, title:"霧林裡的躲貓貓", icon:"🦊", desc:"這幅畫是通往過去的窗戶，藏著 56 種動植物！請發揮偵探眼找出：是誰正在水邊喝水？誰又躲在樹林間呢？"}
+];
+
+const STORAGE_KEY = "detective-game-v1";
+const DEFAULT_PIN = "1234";
+
+function loadState(){
+  let raw = null;
+  try{ raw = JSON.parse(localStorage.getItem(STORAGE_KEY)); }catch(e){}
+  if(!raw || typeof raw !== "object"){ raw = {}; }
+  if(!raw.pin) raw.pin = DEFAULT_PIN;
+  if(!raw.answers) raw.answers = {};
+  return raw;
+}
+function saveState(state){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+let STATE = loadState();
+
+/* ---------------- STARS BG ---------------- */
+(function stars(){
+  const wrap = document.getElementById("stars");
+  let html = "";
+  for(let i=0;i<60;i++){
+    const x = Math.random()*100, y = Math.random()*100, s = Math.random()*1.6+0.6;
+    html += `<span style="left:${x}%; top:${y}%; width:${s}px; height:${s}px;"></span>`;
+  }
+  wrap.innerHTML = html;
+})();
+
+/* ---------------- NAV ---------------- */
+const screens = {home: document.getElementById("home"), play: document.getElementById("play")};
+function showScreen(name){
+  Object.values(screens).forEach(s=>s.classList.remove("active"));
+  screens[name].classList.add("active");
+}
+
+/* ---------------- HOME ---------------- */
+function cardProgressKey(cardNo){ return "progress_card_"+cardNo; }
+function isCardDone(cardNo){
+  const clues = CLUES.filter(c=>c.card===cardNo);
+  return clues.every(c => STATE.answers[c.id] !== undefined && STATE[cardProgressKey(cardNo)] && STATE[cardProgressKey(cardNo)][c.id] === "correct");
+}
+function renderHome(){
+  const grid = document.getElementById("cardGrid");
+  const cards = [1,2,3];
+  grid.innerHTML = cards.map(no=>{
+    const done = STATE["done_card_"+no];
+    return `<button class="mission-btn" data-card="${no}">
+      <span class="progress-dot ${done?'done':''}"></span>
+      <span class="tag">MISSION</span>
+      <div class="num">0${no}</div>
+      <div class="label">任務卡 ${no === 1 ? '一' : no === 2 ? '二' : '三'} · 地球偵探大冒險</div>
+    </button>`;
+  }).join("");
+  grid.querySelectorAll(".mission-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=> openCard(parseInt(btn.dataset.card,10)));
+  });
+}
+renderHome();
+
+/* ---------------- PLAY ---------------- */
+let currentCard = 1;
+let placements = {}; // clueId -> number
+let lockedCorrect = new Set();
+let dragCtx = null;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function openCard(no){
+  currentCard = no;
+  placements = {};
+  lockedCorrect = new Set();
+  document.getElementById("playCardNo").textContent = String(no).padStart(2,"0");
+  renderPlay();
+  showScreen("play");
+}
+
+function cardClues(){ return CLUES.filter(c=>c.card===currentCard); }
+
+function answersReady(){
+  return cardClues().every(c => STATE.answers[c.id] !== undefined && STATE.answers[c.id] !== "" && STATE.answers[c.id] !== null);
+}
+
+function renderPlay(){
+  const clues = cardClues();
+  const ready = answersReady();
+  document.getElementById("noAnswersNote").style.display = ready ? "none" : "block";
+
+  const grid = document.getElementById("clueGrid");
+  grid.innerHTML = clues.map(c=>`
+    <div class="clue-card" id="clue-${c.id}" data-id="${c.id}">
+      <div class="clue-title"><span class="ico">${c.icon}</span>${c.title}</div>
+      <p class="clue-desc">${c.desc}</p>
+      <div class="drop-row">
+        <span class="drop-label">編號</span>
+        <div class="drop-zone" id="drop-${c.id}" data-id="${c.id}"></div>
+      </div>
+    </div>
+  `).join("");
+
+  renderTray();
+  updateProgressPill();
+}
+
+function renderTray(){
+  const clues = cardClues();
+  const ready = answersReady();
+  const tray = document.getElementById("tray");
+  if(!ready){
+    tray.innerHTML = `<div class="tray-empty">老師尚未設定這張任務卡的答案</div>`;
+    document.getElementById("checkBtn").disabled = true;
+    return;
+  }
+  document.getElementById("checkBtn").disabled = false;
+  const numbers = shuffle(clues.map(c => STATE.answers[c.id]));
+  tray.innerHTML = numbers.map((n,i)=>`<div class="num-tile" data-value="${n}" data-tileid="t${i}">${n}</div>`).join("");
+  attachDragHandlers();
+  syncTilePlacementVisibility();
+}
+
+function updateProgressPill(){
+  const clues = cardClues();
+  const done = clues.filter(c => lockedCorrect.has(c.id)).length;
+  document.getElementById("progressPill").textContent = `${done}/${clues.length}`;
+}
+
+function syncTilePlacementVisibility(){
+  document.querySelectorAll(".num-tile").forEach(tile=>{
+    const val = tile.dataset.tileid;
+    tile.classList.toggle("placed", tile.dataset.placedIn !== undefined && tile.dataset.placedIn !== "");
+  });
+}
+
+/* ---- Drag & drop (pointer events, touch + mouse) ---- */
+function attachDragHandlers(){
+  document.querySelectorAll(".num-tile").forEach(tile=>{
+    tile.addEventListener("pointerdown", onTilePointerDown);
+  });
+}
+
+function onTilePointerDown(e){
+  const tile = e.currentTarget;
+  if(tile.classList.contains("placed")) return;
+  e.preventDefault();
+  const rect = tile.getBoundingClientRect();
+  const clone = tile.cloneNode(true);
+  clone.classList.add("dragging");
+  clone.style.width = rect.width+"px";
+  clone.style.height = rect.height+"px";
+  clone.style.left = rect.left+"px";
+  clone.style.top = rect.top+"px";
+  document.body.appendChild(clone);
+  tile.style.visibility = "hidden";
+
+  dragCtx = {
+    tile, clone,
+    offsetX: e.clientX - rect.left,
+    offsetY: e.clientY - rect.top,
+    value: tile.dataset.value,
+    fromZoneId: tile.dataset.placedIn || null,
+    lastZone: null
+  };
+
+  window.addEventListener("pointermove", onTilePointerMove);
+  window.addEventListener("pointerup", onTilePointerUp);
+}
+
+function onTilePointerMove(e){
+  if(!dragCtx) return;
+  const {clone, offsetX, offsetY} = dragCtx;
+  clone.style.left = (e.clientX - offsetX)+"px";
+  clone.style.top = (e.clientY - offsetY)+"px";
+  clone.style.pointerEvents = "none";
+
+  const zoneEl = document.elementFromPoint(e.clientX, e.clientY);
+  const zone = zoneEl ? zoneEl.closest(".drop-zone") : null;
+
+  document.querySelectorAll(".drop-zone.hover").forEach(z=>z.classList.remove("hover"));
+  if(zone && !zone.closest(".clue-card").classList.contains("correct")){
+    zone.classList.add("hover");
+    dragCtx.lastZone = zone;
+  } else {
+    dragCtx.lastZone = null;
+  }
+}
+
+function onTilePointerUp(e){
+  if(!dragCtx) return;
+  const {tile, clone, value, fromZoneId, lastZone} = dragCtx;
+  document.querySelectorAll(".drop-zone.hover").forEach(z=>z.classList.remove("hover"));
+  clone.remove();
+  tile.style.visibility = "";
+
+  window.removeEventListener("pointermove", onTilePointerMove);
+  window.removeEventListener("pointerup", onTilePointerUp);
+  dragCtx = null;
+
+  if(lastZone){
+    const targetId = lastZone.dataset.id;
+    // if target zone already has a tile, bounce it back to tray
+    const prevTileId = lastZone.dataset.tileid;
+    if(prevTileId){
+      const prevTile = document.querySelector(`.num-tile[data-tileid="${prevTileId}"]`);
+      if(prevTile){ prevTile.removeAttribute("data-placed-in"); prevTile.classList.remove("placed"); }
+      delete placements[targetId];
+    }
+    // remove tile from any previous zone it was in
+    if(fromZoneId){
+      const prevZone = document.getElementById("drop-"+fromZoneId);
+      if(prevZone){ prevZone.textContent=""; prevZone.classList.remove("filled"); prevZone.removeAttribute("data-tileid"); }
+      delete placements[fromZoneId];
+    }
+    lastZone.textContent = value;
+    lastZone.classList.add("filled");
+    lastZone.dataset.tileid = tile.dataset.tileid;
+    tile.dataset.placedIn = targetId;
+    tile.classList.add("placed");
+    placements[targetId] = value;
+    clearWrongMark(targetId);
+    if(fromZoneId) clearWrongMark(fromZoneId);
+  } else {
+    // dropped nowhere valid -> if it came from a zone, clear that zone
+    if(fromZoneId){
+      const prevZone = document.getElementById("drop-"+fromZoneId);
+      if(prevZone){ prevZone.textContent=""; prevZone.classList.remove("filled"); prevZone.removeAttribute("data-tileid"); }
+      tile.removeAttribute("data-placed-in");
+      tile.classList.remove("placed");
+      delete placements[fromZoneId];
+      clearWrongMark(fromZoneId);
+    }
+  }
+}
+
+function clearWrongMark(clueId){
+  const cardEl = document.getElementById("clue-"+clueId);
+  if(cardEl) cardEl.classList.remove("wrong");
+}
+
+document.getElementById("checkBtn").addEventListener("click", ()=>{
+  const clues = cardClues();
+  let allCorrect = true;
+  clues.forEach(c=>{
+    if(lockedCorrect.has(c.id)) return;
+    const cardEl = document.getElementById("clue-"+c.id);
+    const val = placements[c.id];
+    const correctVal = String(STATE.answers[c.id]);
+    if(val === undefined){
+      allCorrect = false;
+      return;
+    }
+    if(String(val) === correctVal){
+      cardEl.classList.remove("wrong");
+      cardEl.classList.add("correct");
+      lockedCorrect.add(c.id);
+    } else {
+      allCorrect = false;
+      // leave the tile exactly where the child placed it — only mark it
+      // wrong so they can see the result without it being reset for them
+      cardEl.classList.remove("wrong");
+      void cardEl.offsetWidth;
+      cardEl.classList.add("wrong");
+    }
+  });
+  updateProgressPill();
+
+  if(clues.every(c=>lockedCorrect.has(c.id))){
+    STATE["done_card_"+currentCard] = true;
+    STATE[cardProgressKey(currentCard)] = {};
+    clues.forEach(c=> STATE[cardProgressKey(currentCard)][c.id] = "correct");
+    saveState(STATE);
+    setTimeout(celebrate, 350);
+  }
+});
+
+document.getElementById("backBtn").addEventListener("click", ()=>{
+  renderHome();
+  showScreen("home");
+});
+
+/* ---------------- CELEBRATE ---------------- */
+function celebrate(){
+  const el = document.getElementById("celebrate");
+  el.classList.add("active");
+  const confetti = document.getElementById("confetti");
+  const colors = ["#f6a13f","#2fb8ac","#4caf7d","#e8615c","#ffcf6b"];
+  let html = "";
+  for(let i=0;i<26;i++){
+    const left = Math.random()*100;
+    const delay = Math.random()*0.4;
+    const dur = 1.4 + Math.random()*0.8;
+    const color = colors[i % colors.length];
+    html += `<i style="left:${left}%; background:${color}; animation-delay:${delay}s; animation-duration:${dur}s;"></i>`;
+  }
+  confetti.innerHTML = html;
+}
+document.getElementById("celReplay").addEventListener("click", ()=>{
+  document.getElementById("celebrate").classList.remove("active");
+  openCard(currentCard);
+});
+document.getElementById("celHome").addEventListener("click", ()=>{
+  document.getElementById("celebrate").classList.remove("active");
+  renderHome();
+  showScreen("home");
+});
+
+/* ---------------- TEACHER PIN ---------------- */
+const pinOverlay = document.getElementById("pinOverlay");
+const settingsOverlay = document.getElementById("settingsOverlay");
+let pinBuffer = "";
+let pinMode = "unlock"; // "unlock" | "setnew"
+let pinStep1 = "";
+
+function openPinOverlay(mode){
+  pinMode = mode || "unlock";
+  pinBuffer = "";
+  pinStep1 = "";
+  document.getElementById("pinError").textContent = "";
+  renderPinDots();
+  pinOverlay.classList.add("active");
+}
+function renderPinDots(){
+  const dots = document.querySelectorAll("#pinDots span");
+  dots.forEach((d,i)=> d.classList.toggle("on", i < pinBuffer.length));
+}
+function renderPinKeys(){
+  const keys = ["1","2","3","4","5","6","7","8","9","","0","⌫"];
+  const wrap = document.getElementById("pinKeys");
+  wrap.innerHTML = keys.map(k=>{
+    if(k==="") return `<span></span>`;
+    return `<button class="pin-key" data-key="${k}">${k}</button>`;
+  }).join("");
+  wrap.querySelectorAll(".pin-key").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const k = btn.dataset.key;
+      if(k === "⌫"){ pinBuffer = pinBuffer.slice(0,-1); renderPinDots(); return; }
+      if(pinBuffer.length >= 4) return;
+      pinBuffer += k;
+      renderPinDots();
+      if(pinBuffer.length === 4){ setTimeout(handlePinComplete, 120); }
+    });
+  });
+}
+renderPinKeys();
+
+function handlePinComplete(){
+  if(pinMode === "unlock"){
+    if(pinBuffer === STATE.pin){
+      pinOverlay.classList.remove("active");
+      openSettings();
+    } else {
+      document.getElementById("pinError").textContent = "PIN 碼錯誤，請再試一次";
+      pinBuffer = ""; renderPinDots();
+    }
+  } else if(pinMode === "setnew-current"){
+    if(pinBuffer === STATE.pin){
+      pinMode = "setnew-1";
+      pinBuffer = ""; renderPinDots();
+      document.getElementById("pinError").textContent = "";
+      document.querySelector(".pin-pad p").textContent = "請輸入新的 4 位數 PIN 碼";
+    } else {
+      document.getElementById("pinError").textContent = "目前 PIN 碼錯誤";
+      pinBuffer = ""; renderPinDots();
+    }
+  } else if(pinMode === "setnew-1"){
+    pinStep1 = pinBuffer;
+    pinMode = "setnew-2";
+    pinBuffer = ""; renderPinDots();
+    document.querySelector(".pin-pad p").textContent = "請再輸入一次確認";
+  } else if(pinMode === "setnew-2"){
+    if(pinBuffer === pinStep1){
+      STATE.pin = pinBuffer;
+      saveState(STATE);
+      pinOverlay.classList.remove("active");
+      showToast("PIN 碼已更新");
+    } else {
+      document.getElementById("pinError").textContent = "兩次輸入不一致，請重新設定";
+      pinMode = "setnew-1";
+      pinBuffer = ""; renderPinDots();
+      document.querySelector(".pin-pad p").textContent = "請輸入新的 4 位數 PIN 碼";
+    }
+  }
+}
+
+document.getElementById("teacherFab").addEventListener("click", ()=> openPinOverlay("unlock"));
+document.getElementById("pinClose").addEventListener("click", ()=> pinOverlay.classList.remove("active"));
+
+/* ---------------- SETTINGS ---------------- */
+function openSettings(){
+  const sections = document.getElementById("settingsSections");
+  const cardNames = {1:"任務卡一", 2:"任務卡二", 3:"任務卡三"};
+  let html = "";
+  [1,2,3].forEach(no=>{
+    html += `<div class="settings-section"><h4>${cardNames[no]}</h4>`;
+    CLUES.filter(c=>c.card===no).forEach(c=>{
+      const val = STATE.answers[c.id] !== undefined ? STATE.answers[c.id] : "";
+      html += `<div class="answer-row">
+        <div class="name">${c.icon} <b>${c.title}</b></div>
+        <input type="number" inputmode="numeric" data-clue="${c.id}" value="${val}" placeholder="編號">
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  sections.innerHTML = html;
+  settingsOverlay.classList.add("active");
+}
+document.getElementById("settingsClose").addEventListener("click", ()=> settingsOverlay.classList.remove("active"));
+
+document.getElementById("saveAnswersBtn").addEventListener("click", ()=>{
+  const inputs = document.querySelectorAll("#settingsSections input[data-clue]");
+  inputs.forEach(inp=>{
+    const id = inp.dataset.clue;
+    const v = inp.value.trim();
+    if(v === ""){ delete STATE.answers[id]; }
+    else { STATE.answers[id] = v; }
+  });
+  // answers changed -> clear "done" locks so kids re-verify against new answers
+  saveState(STATE);
+  showToast("答案已儲存 ✅");
+  renderHome();
+});
+
+document.getElementById("exportBtn").addEventListener("click", ()=>{
+  const data = JSON.stringify({pin: STATE.pin, answers: STATE.answers}, null, 2);
+  const blob = new Blob([data], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const ts = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `地球偵探答案_${ts}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast("答案檔已匯出");
+});
+
+document.getElementById("importBtn").addEventListener("click", ()=>{
+  document.getElementById("importFile").click();
+});
+document.getElementById("importFile").addEventListener("change", (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(){
+    try{
+      const data = JSON.parse(reader.result);
+      if(data.answers){ STATE.answers = data.answers; }
+      if(data.pin){ /* keep local pin unless explicitly wanted */ }
+      saveState(STATE);
+      showToast("答案已匯入 ✅");
+      openSettings();
+      renderHome();
+    }catch(err){
+      showToast("匯入失敗，檔案格式不正確");
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+
+document.getElementById("pinChangeBtn").addEventListener("click", ()=>{
+  settingsOverlay.classList.remove("active");
+  document.querySelector(".pin-pad p").textContent = "請輸入目前的 PIN 碼";
+  openPinOverlay("setnew-current");
+});
+
+function showToast(msg){
+  const t = document.getElementById("saveToast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=> t.classList.remove("show"), 1800);
+}
+
+})();
+</script>
+</body>
+</html>
