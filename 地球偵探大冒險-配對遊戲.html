@@ -494,12 +494,19 @@ const CLUES = [
 const STORAGE_KEY = "detective-game-v1";
 const DEFAULT_PIN = "1234";
 
+// 老師提供的正式解答（作品編號），新裝置第一次開啟就會套用這組答案
+const DEFAULT_ANSWERS = {
+  "A1":"2",  "B2":"9",  "C6":"16", "C7":"20", "A5":"5",  "B5":"8",
+  "B1":"7",  "A2":"3",  "C8":"10", "C4":"14", "A7":"17", "A6":"1",
+  "C1":"13", "C2":"15", "B3":"12", "B4":"19", "A8":"4",  "A3":"6"
+};
+
 function loadState(){
   let raw = null;
   try{ raw = JSON.parse(localStorage.getItem(STORAGE_KEY)); }catch(e){}
   if(!raw || typeof raw !== "object"){ raw = {}; }
   if(!raw.pin) raw.pin = DEFAULT_PIN;
-  if(!raw.answers) raw.answers = {};
+  if(!raw.answers) raw.answers = Object.assign({}, DEFAULT_ANSWERS);
   return raw;
 }
 function saveState(state){
