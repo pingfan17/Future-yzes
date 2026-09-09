@@ -123,6 +123,11 @@ body{
   content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
   font-size:9px; color:#fff; font-weight:900;
 }
+.mission-btn .progress-dot.attempted{background:var(--amber);}
+.mission-btn .progress-dot.attempted::after{
+  content:"!"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:9px; color:#fff; font-weight:900;
+}
 
 .teacher-fab{
   position:fixed; right:16px; bottom:16px; z-index:5;
@@ -207,15 +212,31 @@ body{
   border-radius:11px;
   border:2.5px dashed #d8cba3;
   background:#fffdf7;
-  display:flex; align-items:center; justify-content:center;
+  display:block;
+  width:100%;
+  padding:0;
+  text-align:center;
+  font-family:inherit;
   font-size:20px; font-weight:900; color:var(--navy-900);
   transition:border-color .15s ease, background .15s ease, transform .1s ease;
+  -webkit-appearance:none; appearance:none;
+  outline:none;
 }
+.drop-zone::placeholder{color:#cabf9c; font-weight:700; font-size:14px;}
+.drop-zone:focus{border-color:var(--amber); background:#fff8ec; box-shadow:0 0 0 3px rgba(246,161,63,.18);}
 .drop-zone.hover{border-color:var(--teal); background:#e8fbf8; transform:scale(1.04);}
 .drop-zone.filled{border-style:solid; border-color:var(--teal);}
 .clue-card.correct .drop-zone{border-color:var(--leaf); border-style:solid; background:#dff3e6; color:var(--leaf-dark);}
+.clue-card.wrong .drop-zone{border-color:var(--coral); border-style:solid; background:#fdeceb; color:var(--coral-dark);}
+.clue-card.correct .drop-zone:focus{box-shadow:none;}
 .clue-card.correct .clue-title{color:var(--leaf-dark);}
 .lock-icon{position:absolute; top:10px; right:10px; font-size:16px;}
+.correct-hint{
+  font-size:12.5px; font-weight:800; color:var(--coral-dark);
+  margin-top:6px; max-height:0; opacity:0; overflow:hidden;
+  transition:max-height .2s ease, opacity .2s ease, margin-top .2s ease;
+}
+.clue-card.wrong .correct-hint{max-height:24px; opacity:1; margin-top:6px;}
 
 .tray-wrap{
   position:sticky; bottom:0;
@@ -223,27 +244,6 @@ body{
   padding:14px 14px calc(14px + env(safe-area-inset-bottom));
   background:linear-gradient(180deg, rgba(12,23,48,0), var(--navy-950) 22%);
 }
-.tray{
-  display:flex; gap:10px; overflow-x:auto; padding:6px 2px 10px;
-  scrollbar-width:none;
-}
-.tray::-webkit-scrollbar{display:none;}
-.num-tile{
-  flex:0 0 auto;
-  width:52px; height:52px; border-radius:14px;
-  background:linear-gradient(160deg, var(--teal), var(--teal-dark));
-  color:#fff; font-size:21px; font-weight:900;
-  display:flex; align-items:center; justify-content:center;
-  box-shadow:0 6px 14px rgba(0,0,0,.3);
-  cursor:grab;
-  touch-action:none;
-}
-.num-tile.placed{opacity:0; pointer-events:none;}
-.num-tile.dragging{
-  position:fixed; z-index:50; box-shadow:0 14px 30px rgba(0,0,0,.4);
-  transform:scale(1.12);
-}
-.tray-empty{color:#7c88ae; font-size:13px; padding:10px 4px; text-align:center; width:100%;}
 
 .check-btn-row{display:flex; justify-content:center; padding:2px 0 10px;}
 .check-btn{
@@ -256,9 +256,19 @@ body{
 .check-btn:active{transform:scale(.96);}
 .check-btn:disabled{opacity:.4; box-shadow:none;}
 
+.play-hint{
+  text-align:center; color:#9fabd4; font-size:12px;
+  margin:0 0 12px; letter-spacing:.01em;
+}
 .no-answers-note{
   background:rgba(232,97,92,.15); color:#ffd7d5;
   border:1px solid rgba(232,97,92,.4);
+  border-radius:12px; padding:10px 14px; font-size:12.5px;
+  margin:0 0 12px; line-height:1.5;
+}
+.review-note{
+  background:rgba(47,184,172,.15); color:#c9f3ee;
+  border:1px solid rgba(47,184,172,.4);
   border-radius:12px; padding:10px 14px; font-size:12.5px;
   margin:0 0 12px; line-height:1.5;
 }
@@ -360,6 +370,8 @@ body{
 .btn.export{background:var(--navy-800); color:#fff;}
 .btn.import{background:#eee3c7; color:var(--navy-900);}
 .btn.pinchange{background:#eee3c7; color:var(--navy-900);}
+.btn.reset{background:var(--coral); color:#fff;}
+.btn.reset-all{background:var(--navy-800); color:#fff;}
 .save-toast{
   position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px);
   background:var(--navy-900); color:#fff; padding:12px 20px; border-radius:999px;
@@ -395,12 +407,15 @@ input[type=file]{display:none;}
   <div id="noAnswersNote" class="no-answers-note" style="display:none;">
     ⚠️ 老師還沒有設定這張任務卡的正確答案，請先點右下角齒輪圖示進入「老師設定」輸入作品編號。
   </div>
+  <div id="reviewNote" class="review-note" style="display:none;">
+    🔒 這張任務卡已經完成核對並鎖定，無法再作答。如需重新挑戰，請老師到「老師設定」重置這張任務卡。
+  </div>
+  <p class="play-hint" id="playHint">💡 點格子輸入作品編號，填完全部再按「確認答案」核對，送出後就無法修改囉。</p>
   <div class="clue-grid" id="clueGrid"></div>
-  <div class="tray-wrap">
+  <div class="tray-wrap" id="trayWrap">
     <div class="check-btn-row">
       <button class="check-btn" id="checkBtn">✅ 確認答案</button>
     </div>
-    <div class="tray" id="tray"></div>
   </div>
 </section>
 
@@ -414,7 +429,7 @@ input[type=file]{display:none;}
     <h2>任務完成！</h2>
     <p>小偵探太厲害了，成功找出所有線索！</p>
     <div class="celebrate-actions">
-      <button class="pill-btn ghost" id="celReplay">再玩一次</button>
+      <button class="pill-btn ghost" id="celReplay">查看紀錄</button>
       <button class="pill-btn primary" id="celHome">回主畫面</button>
     </div>
   </div>
@@ -448,6 +463,11 @@ input[type=file]{display:none;}
       <button class="sheet-close" id="settingsClose">✕</button>
     </div>
     <div class="sheet-body" id="settingsBody">
+      <div class="settings-section">
+        <h4>重置任務卡</h4>
+        <p class="hint">學生完成核對後，任務卡會自動鎖定無法重填。若要讓學生重新挑戰某張任務卡，點下方按鈕重置（會清除該卡目前的作答紀錄）。</p>
+        <div class="settings-actions" id="resetButtons"></div>
+      </div>
       <p class="hint">請輸入每個線索對應的「作品編號」（數字）。設定完成後按「儲存」，孩子畫面就會立即套用。多台平板可用「匯出答案檔」產生一個檔案，再到其他平板「匯入答案檔」同步。</p>
       <div id="settingsSections"></div>
       <div class="settings-actions">
@@ -507,6 +527,8 @@ function loadState(){
   if(!raw || typeof raw !== "object"){ raw = {}; }
   if(!raw.pin) raw.pin = DEFAULT_PIN;
   if(!raw.answers) raw.answers = Object.assign({}, DEFAULT_ANSWERS);
+  if(!raw.checkedCards) raw.checkedCards = {};   // { "1": true } once a card has been submitted & locked
+  if(!raw.results) raw.results = {};             // { clueId: {value, status} } snapshot from the submitted check
   return raw;
 }
 function saveState(state){
@@ -543,8 +565,12 @@ function renderHome(){
   const cards = [1,2,3];
   grid.innerHTML = cards.map(no=>{
     const done = STATE["done_card_"+no];
+    const checked = STATE.checkedCards[no];
+    let dotClass = "";
+    if(done) dotClass = "done";
+    else if(checked) dotClass = "attempted";
     return `<button class="mission-btn" data-card="${no}">
-      <span class="progress-dot ${done?'done':''}"></span>
+      <span class="progress-dot ${dotClass}"></span>
       <span class="tag">MISSION</span>
       <div class="num">0${no}</div>
       <div class="label">任務卡 ${no === 1 ? '一' : no === 2 ? '二' : '三'} · 地球偵探大冒險</div>
@@ -560,21 +586,13 @@ renderHome();
 let currentCard = 1;
 let placements = {}; // clueId -> number
 let lockedCorrect = new Set();
-let dragCtx = null;
-
-function shuffle(arr){
-  const a = arr.slice();
-  for(let i=a.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [a[i],a[j]] = [a[j],a[i]];
-  }
-  return a;
-}
+let lockedWrong = new Set();
 
 function openCard(no){
   currentCard = no;
   placements = {};
   lockedCorrect = new Set();
+  lockedWrong = new Set();
   document.getElementById("playCardNo").textContent = String(no).padStart(2,"0");
   renderPlay();
   showScreen("play");
@@ -589,38 +607,74 @@ function answersReady(){
 function renderPlay(){
   const clues = cardClues();
   const ready = answersReady();
-  document.getElementById("noAnswersNote").style.display = ready ? "none" : "block";
+  const isChecked = !!STATE.checkedCards[currentCard];
+
+  document.getElementById("noAnswersNote").style.display = (ready || isChecked) ? "none" : "block";
+  document.getElementById("reviewNote").style.display = isChecked ? "block" : "none";
+  document.getElementById("playHint").style.display = isChecked ? "none" : "block";
+  document.getElementById("trayWrap").style.display = isChecked ? "none" : "block";
+  document.getElementById("checkBtn").disabled = isChecked ? true : !ready;
 
   const grid = document.getElementById("clueGrid");
-  grid.innerHTML = clues.map(c=>`
-    <div class="clue-card" id="clue-${c.id}" data-id="${c.id}">
+  grid.innerHTML = clues.map(c=>{
+    const res = isChecked ? STATE.results[c.id] : null;
+    const cardState = res ? (res.status === "correct" ? "correct" : "wrong") : "";
+    const val = res ? res.value : "";
+    const hint = (res && res.status !== "correct") ? `✏️ 正確答案：${STATE.answers[c.id]}` : "";
+    return `
+    <div class="clue-card ${cardState}" id="clue-${c.id}" data-id="${c.id}">
       <div class="clue-title"><span class="ico">${c.icon}</span>${c.title}</div>
       <p class="clue-desc">${c.desc}</p>
       <div class="drop-row">
         <span class="drop-label">編號</span>
-        <div class="drop-zone" id="drop-${c.id}" data-id="${c.id}"></div>
+        <input class="drop-zone" id="drop-${c.id}" data-id="${c.id}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="輸入" autocomplete="off" autocorrect="off" spellcheck="false" value="${val}" ${isChecked ? "readonly" : ""}>
       </div>
-    </div>
-  `).join("");
+      <div class="correct-hint" id="hint-${c.id}">${hint}</div>
+    </div>`;
+  }).join("");
 
-  renderTray();
+  if(isChecked){
+    clues.forEach(c=>{
+      const res = STATE.results[c.id];
+      if(res){
+        if(res.status === "correct") lockedCorrect.add(c.id);
+        else lockedWrong.add(c.id);
+      }
+    });
+  } else {
+    attachTypeHandlers();
+  }
+
   updateProgressPill();
 }
 
-function renderTray(){
-  const clues = cardClues();
-  const ready = answersReady();
-  const tray = document.getElementById("tray");
-  if(!ready){
-    tray.innerHTML = `<div class="tray-empty">老師尚未設定這張任務卡的答案</div>`;
-    document.getElementById("checkBtn").disabled = true;
+/* ---- Manual typing on drop zones ---- */
+function attachTypeHandlers(){
+  document.querySelectorAll(".drop-zone").forEach(zone=>{
+    zone.addEventListener("input", onZoneType);
+  });
+}
+
+function onZoneType(e){
+  const zone = e.target;
+  const id = zone.dataset.id;
+  const cardEl = document.getElementById("clue-"+id);
+  if(cardEl && cardEl.classList.contains("correct")){
+    zone.value = placements[id] || "";
     return;
   }
-  document.getElementById("checkBtn").disabled = false;
-  const numbers = shuffle(clues.map(c => STATE.answers[c.id]));
-  tray.innerHTML = numbers.map((n,i)=>`<div class="num-tile" data-value="${n}" data-tileid="t${i}">${n}</div>`).join("");
-  attachDragHandlers();
-  syncTilePlacementVisibility();
+  const cleaned = zone.value.replace(/[^0-9]/g, "");
+  if(cleaned !== zone.value) zone.value = cleaned;
+
+  if(cleaned === ""){
+    delete placements[id];
+    zone.classList.remove("filled");
+  } else {
+    placements[id] = cleaned;
+    zone.classList.add("filled");
+  }
+  // typing never reveals correctness — that only happens when "確認答案" is pressed
+  clearWrongMark(id);
 }
 
 function updateProgressPill(){
@@ -629,150 +683,56 @@ function updateProgressPill(){
   document.getElementById("progressPill").textContent = `${done}/${clues.length}`;
 }
 
-function syncTilePlacementVisibility(){
-  document.querySelectorAll(".num-tile").forEach(tile=>{
-    const val = tile.dataset.tileid;
-    tile.classList.toggle("placed", tile.dataset.placedIn !== undefined && tile.dataset.placedIn !== "");
-  });
-}
-
-/* ---- Drag & drop (pointer events, touch + mouse) ---- */
-function attachDragHandlers(){
-  document.querySelectorAll(".num-tile").forEach(tile=>{
-    tile.addEventListener("pointerdown", onTilePointerDown);
-  });
-}
-
-function onTilePointerDown(e){
-  const tile = e.currentTarget;
-  if(tile.classList.contains("placed")) return;
-  e.preventDefault();
-  const rect = tile.getBoundingClientRect();
-  const clone = tile.cloneNode(true);
-  clone.classList.add("dragging");
-  clone.style.width = rect.width+"px";
-  clone.style.height = rect.height+"px";
-  clone.style.left = rect.left+"px";
-  clone.style.top = rect.top+"px";
-  document.body.appendChild(clone);
-  tile.style.visibility = "hidden";
-
-  dragCtx = {
-    tile, clone,
-    offsetX: e.clientX - rect.left,
-    offsetY: e.clientY - rect.top,
-    value: tile.dataset.value,
-    fromZoneId: tile.dataset.placedIn || null,
-    lastZone: null
-  };
-
-  window.addEventListener("pointermove", onTilePointerMove);
-  window.addEventListener("pointerup", onTilePointerUp);
-}
-
-function onTilePointerMove(e){
-  if(!dragCtx) return;
-  const {clone, offsetX, offsetY} = dragCtx;
-  clone.style.left = (e.clientX - offsetX)+"px";
-  clone.style.top = (e.clientY - offsetY)+"px";
-  clone.style.pointerEvents = "none";
-
-  const zoneEl = document.elementFromPoint(e.clientX, e.clientY);
-  const zone = zoneEl ? zoneEl.closest(".drop-zone") : null;
-
-  document.querySelectorAll(".drop-zone.hover").forEach(z=>z.classList.remove("hover"));
-  if(zone && !zone.closest(".clue-card").classList.contains("correct")){
-    zone.classList.add("hover");
-    dragCtx.lastZone = zone;
-  } else {
-    dragCtx.lastZone = null;
-  }
-}
-
-function onTilePointerUp(e){
-  if(!dragCtx) return;
-  const {tile, clone, value, fromZoneId, lastZone} = dragCtx;
-  document.querySelectorAll(".drop-zone.hover").forEach(z=>z.classList.remove("hover"));
-  clone.remove();
-  tile.style.visibility = "";
-
-  window.removeEventListener("pointermove", onTilePointerMove);
-  window.removeEventListener("pointerup", onTilePointerUp);
-  dragCtx = null;
-
-  if(lastZone){
-    const targetId = lastZone.dataset.id;
-    // if target zone already has a tile, bounce it back to tray
-    const prevTileId = lastZone.dataset.tileid;
-    if(prevTileId){
-      const prevTile = document.querySelector(`.num-tile[data-tileid="${prevTileId}"]`);
-      if(prevTile){ prevTile.removeAttribute("data-placed-in"); prevTile.classList.remove("placed"); }
-      delete placements[targetId];
-    }
-    // remove tile from any previous zone it was in
-    if(fromZoneId){
-      const prevZone = document.getElementById("drop-"+fromZoneId);
-      if(prevZone){ prevZone.textContent=""; prevZone.classList.remove("filled"); prevZone.removeAttribute("data-tileid"); }
-      delete placements[fromZoneId];
-    }
-    lastZone.textContent = value;
-    lastZone.classList.add("filled");
-    lastZone.dataset.tileid = tile.dataset.tileid;
-    tile.dataset.placedIn = targetId;
-    tile.classList.add("placed");
-    placements[targetId] = value;
-    clearWrongMark(targetId);
-    if(fromZoneId) clearWrongMark(fromZoneId);
-  } else {
-    // dropped nowhere valid -> if it came from a zone, clear that zone
-    if(fromZoneId){
-      const prevZone = document.getElementById("drop-"+fromZoneId);
-      if(prevZone){ prevZone.textContent=""; prevZone.classList.remove("filled"); prevZone.removeAttribute("data-tileid"); }
-      tile.removeAttribute("data-placed-in");
-      tile.classList.remove("placed");
-      delete placements[fromZoneId];
-      clearWrongMark(fromZoneId);
-    }
-  }
-}
-
 function clearWrongMark(clueId){
   const cardEl = document.getElementById("clue-"+clueId);
   if(cardEl) cardEl.classList.remove("wrong");
+  const hintEl = document.getElementById("hint-"+clueId);
+  if(hintEl) hintEl.textContent = "";
 }
 
 document.getElementById("checkBtn").addEventListener("click", ()=>{
   const clues = cardClues();
   let allCorrect = true;
+  const results = {};
+
   clues.forEach(c=>{
-    if(lockedCorrect.has(c.id)) return;
     const cardEl = document.getElementById("clue-"+c.id);
-    const val = placements[c.id];
+    const zoneEl = document.getElementById("drop-"+c.id);
+    const val = placements[c.id] !== undefined ? placements[c.id] : "";
     const correctVal = String(STATE.answers[c.id]);
-    if(val === undefined){
-      allCorrect = false;
-      return;
-    }
-    if(String(val) === correctVal){
+
+    if(val !== "" && val === correctVal){
       cardEl.classList.remove("wrong");
       cardEl.classList.add("correct");
       lockedCorrect.add(c.id);
+      results[c.id] = {value: val, status: "correct"};
     } else {
       allCorrect = false;
-      // leave the tile exactly where the child placed it — only mark it
-      // wrong so they can see the result without it being reset for them
       cardEl.classList.remove("wrong");
       void cardEl.offsetWidth;
       cardEl.classList.add("wrong");
+      lockedWrong.add(c.id);
+      results[c.id] = {value: val, status: "wrong"};
+      const hintEl = document.getElementById("hint-"+c.id);
+      if(hintEl) hintEl.textContent = `✏️ 正確答案：${correctVal}`;
     }
+    if(zoneEl){ zoneEl.readOnly = true; zoneEl.blur(); }
   });
+
+  // lock this task card permanently — one submission only, teacher can reset later
+  STATE.results = Object.assign({}, STATE.results, results);
+  STATE.checkedCards[currentCard] = true;
+  document.getElementById("reviewNote").style.display = "block";
+  document.getElementById("playHint").style.display = "none";
+  document.getElementById("trayWrap").style.display = "none";
   updateProgressPill();
 
-  if(clues.every(c=>lockedCorrect.has(c.id))){
+  if(allCorrect){
     STATE["done_card_"+currentCard] = true;
-    STATE[cardProgressKey(currentCard)] = {};
-    clues.forEach(c=> STATE[cardProgressKey(currentCard)][c.id] = "correct");
-    saveState(STATE);
+  }
+  saveState(STATE);
+
+  if(allCorrect){
     setTimeout(celebrate, 350);
   }
 });
@@ -891,6 +851,7 @@ document.getElementById("pinClose").addEventListener("click", ()=> pinOverlay.cl
 
 /* ---------------- SETTINGS ---------------- */
 function openSettings(){
+  renderResetButtons();
   const sections = document.getElementById("settingsSections");
   const cardNames = {1:"任務卡一", 2:"任務卡二", 3:"任務卡三"};
   let html = "";
@@ -908,6 +869,32 @@ function openSettings(){
   sections.innerHTML = html;
   settingsOverlay.classList.add("active");
 }
+
+function renderResetButtons(){
+  const wrap = document.getElementById("resetButtons");
+  const cardNames = {1:"任務卡一", 2:"任務卡二", 3:"任務卡三"};
+  wrap.innerHTML = [1,2,3].map(no=>{
+    const locked = !!STATE.checkedCards[no];
+    return `<button class="btn reset" data-reset-card="${no}" ${locked ? "" : "disabled"} style="${locked ? "" : "opacity:.4;"}">↺ 重置${cardNames[no]}</button>`;
+  }).join("");
+  wrap.querySelectorAll("[data-reset-card]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const no = parseInt(btn.dataset.resetCard, 10);
+      resetCard(no);
+    });
+  });
+}
+
+function resetCard(no){
+  delete STATE.checkedCards[no];
+  delete STATE["done_card_"+no];
+  CLUES.filter(c=>c.card===no).forEach(c=> delete STATE.results[c.id]);
+  saveState(STATE);
+  renderResetButtons();
+  renderHome();
+  showToast(`任務卡${no === 1 ? "一" : no === 2 ? "二" : "三"}已重置`);
+}
+
 document.getElementById("settingsClose").addEventListener("click", ()=> settingsOverlay.classList.remove("active"));
 
 document.getElementById("saveAnswersBtn").addEventListener("click", ()=>{
